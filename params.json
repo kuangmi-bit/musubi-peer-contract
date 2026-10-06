@@ -1,0 +1,36 @@
+{
+ "principal": {
+  "domain": "agent-passport.org",
+  "key_url": "https://agent-passport.org/keys/agreement.json",
+  "public_key_ed25519_b64": "quG2sVTOQ5NK52E/JQZOCntI/f3l8/aMmbOPjVLsGX4="
+ },
+ "contractor": {
+  "domain": "kuangmi-bit.github.io",
+  "key_url": "https://kuangmi-bit.github.io/keys/agreement.json",
+  "public_key_ed25519_b64": "hK0u4+bEV675RRW+Hs3rsTpZVRERj3fANU8A2Z0R6i0="
+ },
+ "task": {
+  "purpose": "independent_reproduction",
+  "payload": "independent reproduction of the NENRIN interop-v0.2/edge corpus at horizon-shield commit 7546b106ec37f9298725e2cfcc5c4647f2ebe08e by kuangmi-bit.github.io, publishing the verdict signatures under the contractor's repository kuangmi-bit/nenrin-independent-verifiers",
+  "payload_digest": "5d6a3dd5c30c0de742debec2804d46d167d9cc666e5ca4e4cb222e0349d07c43",
+  "target": "https://github.com/ogasurfproject-jpg/horizon-shield/tree/7546b106ec37f9298725e2cfcc5c4647f2ebe08e/workers/hs-ledger/nenrin/interop-v0.2/edge",
+  "action_definitions": {
+   "read": "GET the public corpus at the pinned commit and the published verifier; recompute locally; no state is changed"
+  },
+  "a2a_task_id": null
+ },
+ "authorized_actions": [
+  "read"
+ ],
+ "prohibited_actions": [
+  "delete",
+  "payment"
+ ],
+ "lower_bound": {
+  "kind": "bitcoin_block",
+  "height": 970190,
+  "hash": "0000000000000000000052efffb18525a18cf830b2c312cc8864764d0523eb1d"
+ },
+ "finality_depth": 6,
+ "expiry_height": null
+}
