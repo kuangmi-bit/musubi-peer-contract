@@ -63,14 +63,15 @@
   },
   "selection_provenance": null,
   "establishes": [
-    "that both parties signed these grant bytes at the stated time"
+    "that both parties signed these grant bytes"
   ],
   "does_not_establish": [
     "that anyone enforced any of this at runtime; the grant is proved against the records afterwards",
     "that the contractor obeyed the grant, only that its recorded acts match or deviate from it",
     "that anyone judges liability or fault; the verdict is a function anyone recomputes from the contract, the records and the headers",
     "that a prohibited action was impossible, only that performing one is a provable deviation",
-    "that this is a legal contract or determines legal responsibility"
+    "that this is a legal contract or determines legal responsibility",
+    "when either signature was produced; agreed_at is the declared drafting time, not a proven signing time"
   ],
   "signatures": []
 }

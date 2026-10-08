@@ -31,12 +31,32 @@ Authorized: `read`. Prohibited: `delete`, `payment`. Earliest use: Bitcoin block
 | file | what it is | sha256 |
 |---|---|---|
 | `params.json` | the parameters both sides can rebuild the contract from | `f890e5689f5c75f965e4bf45441f5daba2e9b9bc0159327a64b2d32295d49111` |
-| `c.unsigned.json` | the unsigned contract, as generated | `8e3b6acc16746bced8bd6fa3cce867e46e604770866303dfce0aea1a09bfe97a` |
+| `c.unsigned.json` | the unsigned contract, as generated (corrected draft, see below) | `d3f2cdf85f1777867673951330e7f68c9391d0a3e26b919d8af873e869c77671` |
 
 `contract_sha256` (the canonical form with signatures left out, which is what the parties sign):
-`9a450534e94473fcb4d8e241a550c3049eb77ca94ccc7e76c9a621f2bcf6ff09` · `contract_id`
+`d7118f285250241513db1ce244a7ec4b4fbfd9160123ba466abdfad727b70f81` · `contract_id`
 `34ee9d22f9f448de7f15db1e1dd4d697`. The file hash and `contract_sha256` differ on purpose: the
 signatures are excluded from the latter by construction.
+
+### Revision: the corrected unsigned draft
+
+The first draft (commit `2f8d1dc`, file sha256 `8e3b6acc…`, `contract_sha256` `9a450534…`) said in
+`establishes` that the parties signed "at the stated time". The record cannot support that: `agreed_at`
+is set when the draft is built, and the signature records carry no signing time. `aeoess` raised it in
+the thread and `ogasurfproject-jpg` fixed the wording upstream in `d7d78582`.
+
+This file is regenerated from the same `params.json`, at `peer_kit.py` `29a624cc`, with the three
+non-content values pinned from the first draft:
+
+```
+git show 2f8d1dc:c.unsigned.json > draft1.json
+python3 peer_kit.py contract --params params.json --pins-from draft1.json \
+  --expect d7118f285250241513db1ce244a7ec4b4fbfd9160123ba466abdfad727b70f81 --out c.unsigned.json
+```
+
+It reproduces `d7118f28…` here (`"match": true`), and differs from the first draft in exactly two
+leaves — `establishes[0]` and the added `does_not_establish[5]`. Task, grant, parties, `lower_bound`,
+`contract_id`, `nonce` and `agreed_at` are byte-for-byte unchanged.
 
 ## Status
 
@@ -61,9 +81,10 @@ check it.
 
 The contract's own `does_not_establish` list is the honest one: that anyone enforced anything at runtime
 (the grant is proved against the records afterwards), that the contractor obeyed the grant, that anyone
-judges liability or fault, that a prohibited action was impossible, or that this is a legal contract.
-What it does establish is narrower: both parties signed these bytes at a stated time, and the contractor
-named by sha256 exactly which actions it was authorized and prohibited to perform.
+judges liability or fault, that a prohibited action was impossible, that this is a legal contract, or
+that the record shows when either signature was produced (`agreed_at` is the declared drafting time, not
+a proven signing time). What it does establish is narrower: both parties signed these grant bytes, and
+the contractor named by sha256 exactly which actions it was authorized and prohibited to perform.
 
 ## Verify it yourself
 
