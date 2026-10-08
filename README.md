@@ -33,6 +33,10 @@ Authorized: `read`. Prohibited: `delete`, `payment`. Earliest use: Bitcoin block
 | `params.json` | the parameters both sides can rebuild the contract from | `f890e5689f5c75f965e4bf45441f5daba2e9b9bc0159327a64b2d32295d49111` |
 | `c.unsigned.json` | the unsigned contract, as generated (corrected draft, see below) | `d3f2cdf85f1777867673951330e7f68c9391d0a3e26b919d8af873e869c77671` |
 | `c.AB.json` | the contract carrying both signatures: A's as posted in the thread, B's added here | `8633b800f04b36654f517b35cee8d673c716ceccd36db49fbb2f4be8545f1fcb` |
+| `e.evidence.json` | what the `read` action was performed on and what it reproduced — the object `nenrin_ref` hashes | `5f0763763915d58a8c0303e0a1cb6cdd11c83bdbd991f9b883023a84d127a93a` |
+| `e.json` | the contractor's signed record of the action taken (`a2a-execution-v0`) | `af3e0b4918041119aad7bcda81372945e3d189693557a2152f11b19268fe6e31` |
+| `e.stampable` | canonical bytes of `e.json` without `anchor`, the file handed to `ots stamp` | `11a2ec6cbdde5a10f8fce9b5a82ae80a458626c78e2bd5683a4f3517140564ef` |
+| `e.stampable.ots` | the OpenTimestamps proof over those bytes | `614e20578cf403f0115d7684e633ba1949a89ce080a3d0c4540251b396889e64` |
 
 `contract_sha256` (the canonical form with signatures left out, which is what the parties sign):
 `d7118f285250241513db1ce244a7ec4b4fbfd9160123ba466abdfad727b70f81` · `contract_id`
@@ -76,13 +80,39 @@ $ python3 peer_kit.py verify --contract c.AB.json
 have been added. `c.AB.json` is the signed copy; `c.unsigned.json` and the first draft are kept as they
 were, because the revision history is part of what this repository is for.
 
+### Execution
+
+The action this contract authorizes is `read`: fetch the corpus at the pinned commit, recompute it
+locally, change nothing. The contractor ran its own published verifier over `interop-v0.2/edge` and
+reproduced **36/36** verdict signatures, then signed a record of it:
+
+```
+$ python3 peer_kit.py exec --contract c.AB.json --key me.pem --actions read \
+    --nenrin-ref 5f0763763915d58a8c0303e0a1cb6cdd11c83bdbd991f9b883023a84d127a93a --out e.json
+{"wrote": "e.json"}
+```
+
+`e.json` binds to the contract by `contract_sha256` and is signed in the contractor seat. Its
+`nenrin_ref` is the sha256 of `e.evidence.json` here, which fixes what was read and what came out of it:
+the corpus commit, the `expected.json` it was checked against, the reproducer's repository, command and
+output. Anyone can repeat it from the published bytes:
+
+```
+git clone --depth 1 https://github.com/kuangmi-bit/nenrin-independent-verifiers
+cd nenrin-independent-verifiers && ./fetch_corpus.sh
+```
+
+The OpenTimestamps proof was made over `e.stampable` — the canonical bytes of `e.json` without `anchor` —
+so the stamp covers the record and nothing else. In this commit it is still a pending attestation;
+`ots upgrade` follows, then `anchor` and `settle`, each as its own commit.
+
 ## Status
 
-- [x] both keys published; `peer_kit.py selftest` ALL PASS on the contractor's machine (5 checks)
+- [x] both keys published; `peer_kit.py selftest` ALL PASS at `29a624cc` on the contractor's machine (6 checks)
 - [x] unsigned contract drafted and published here
 - [x] signed by both parties → `c.AB.json`
-- [ ] execution signed by the contractor → `e.json`
-- [ ] OpenTimestamps proof → `e.stamp.ots`, then `ots upgrade`
+- [x] execution signed by the contractor → `e.json`, evidence `e.evidence.json`
+- [x] OpenTimestamps proof made → `e.stampable.ots` (pending; `ots upgrade` to follow)
 - [ ] anchor and settle
 
 Each later step is committed with its own hashes rather than overwriting anything.

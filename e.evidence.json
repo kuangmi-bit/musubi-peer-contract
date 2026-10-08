@@ -1,0 +1,22 @@
+{
+  "schema": "nenrin-reproduction-evidence-v0",
+  "note": "what the `read` action of this contract was performed on, and what it reproduced. Not a verdict of its own.",
+  "corpus": {
+    "repository": "https://github.com/ogasurfproject-jpg/horizon-shield",
+    "commit": "7546b106ec37f9298725e2cfcc5c4647f2ebe08e",
+    "path": "workers/hs-ledger/nenrin/interop-v0.2/edge",
+    "expected_json_sha256": "e5741d94ff631b824e389c13fa4d042dede65f4ff4a595a73961f67527062682"
+  },
+  "reproducer": {
+    "repository": "https://github.com/kuangmi-bit/nenrin-independent-verifiers",
+    "commit": "a5e6bfbb",
+    "verifier": "verifiers/nenrin_verify_v02_edge.py",
+    "runner": "runners/run_edge.py"
+  },
+  "command": "python3 runners/run_edge.py .corpus/workers/hs-ledger/nenrin/interop-v0.2/edge",
+  "result": "36/36 verdict signatures reproduced",
+  "exit_code": 0,
+  "run_output": [
+    "36/36 verdict signatures reproduced"
+  ]
+}
