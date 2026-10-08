@@ -32,6 +32,7 @@ Authorized: `read`. Prohibited: `delete`, `payment`. Earliest use: Bitcoin block
 |---|---|---|
 | `params.json` | the parameters both sides can rebuild the contract from | `f890e5689f5c75f965e4bf45441f5daba2e9b9bc0159327a64b2d32295d49111` |
 | `c.unsigned.json` | the unsigned contract, as generated (corrected draft, see below) | `d3f2cdf85f1777867673951330e7f68c9391d0a3e26b919d8af873e869c77671` |
+| `c.AB.json` | the contract carrying both signatures: A's as posted in the thread, B's added here | `8633b800f04b36654f517b35cee8d673c716ceccd36db49fbb2f4be8545f1fcb` |
 
 `contract_sha256` (the canonical form with signatures left out, which is what the parties sign):
 `d7118f285250241513db1ce244a7ec4b4fbfd9160123ba466abdfad727b70f81` · `contract_id`
@@ -58,11 +59,28 @@ It reproduces `d7118f28…` here (`"match": true`), and differs from the first d
 leaves — `establishes[0]` and the added `does_not_establish[5]`. Task, grant, parties, `lower_bound`,
 `contract_id`, `nonce` and `agreed_at` are byte-for-byte unchanged.
 
+### Signatures
+
+The principal signed first; its signature was posted in the thread on 2026-10-08T01:25Z. The contractor
+added its own to those exact bytes with `peer_kit.py` at `29a624cc`, on the machine holding the key
+pinned in `parties[1]`:
+
+```
+$ python3 peer_kit.py sign --contract c.A.json --key me.pem --domain kuangmi-bit.github.io --out c.AB.json
+{"wrote": "c.AB.json", "signatures": 2}
+$ python3 peer_kit.py verify --contract c.AB.json
+{"verdict": "accepted", "refusals": [], "findings": [], "contract_sha256": "d7118f28…f81"}
+```
+
+`peer_kit.py sign` refuses any key the contract does not pin, so a signature from any other key could not
+have been added. `c.AB.json` is the signed copy; `c.unsigned.json` and the first draft are kept as they
+were, because the revision history is part of what this repository is for.
+
 ## Status
 
 - [x] both keys published; `peer_kit.py selftest` ALL PASS on the contractor's machine (5 checks)
 - [x] unsigned contract drafted and published here
-- [ ] signed by both parties → `c.AB.json`
+- [x] signed by both parties → `c.AB.json`
 - [ ] execution signed by the contractor → `e.json`
 - [ ] OpenTimestamps proof → `e.stamp.ots`, then `ots upgrade`
 - [ ] anchor and settle
@@ -95,7 +113,7 @@ cd workers/hs-ledger/nenrin/musubi-v0
 python3 peer_kit.py selftest
 curl -s https://agent-passport.org/keys/agreement.json | head -c 200
 curl -s https://kuangmi-bit.github.io/keys/agreement.json | head -c 200
-python3 peer_kit.py verify --contract c.AB.json    # once both signatures are in this repository
+python3 peer_kit.py verify --contract c.AB.json    # expected: accepted, no refusals
 ```
 
 The published contract bytes are here so that anyone can recompute the verdicts around them; no license
