@@ -36,7 +36,10 @@ Authorized: `read`. Prohibited: `delete`, `payment`. Earliest use: Bitcoin block
 | `e.evidence.json` | what the `read` action was performed on and what it reproduced — the object `nenrin_ref` hashes | `5f0763763915d58a8c0303e0a1cb6cdd11c83bdbd991f9b883023a84d127a93a` |
 | `e.json` | the contractor's signed record of the action taken (`a2a-execution-v0`) | `af3e0b4918041119aad7bcda81372945e3d189693557a2152f11b19268fe6e31` |
 | `e.stampable` | canonical bytes of `e.json` without `anchor`, the file handed to `ots stamp` | `11a2ec6cbdde5a10f8fce9b5a82ae80a458626c78e2bd5683a4f3517140564ef` |
-| `e.stampable.ots` | the OpenTimestamps proof over those bytes | `614e20578cf403f0115d7684e633ba1949a89ce080a3d0c4540251b396889e64` |
+| `e.stampable.ots` | the OpenTimestamps proof over those bytes (upgraded to its Bitcoin attestation; the pending version is at commit `74a734c`) | `4568914d7c9d76285aba71f962f79a3839d57cf818a23443caa6a3859457e5ec` |
+| `view.json` | the header view settle takes, built from two explorers that agreed | `990f1a78fbe14033dac8ebcdfcbc640b84b882fd6b54fc1ebbc7c234afb27246` |
+| `e.anchored.json` | `e.json` plus the anchor reached from the proof at height 970480 | `a1293dbc9e289ef4079ff0b4cc83a421b5f4612c7766f0aad46067f85bba3d34` |
+| `settlement.json` | canonical settle output: status `final`, verdict `within_grant`, no deviations | `a21190c7f30ed2436b96efe05d7434f9319b41d5cf42e50ed8c730d6b4067fe7` |
 
 `contract_sha256` (the canonical form with signatures left out, which is what the parties sign):
 `d7118f285250241513db1ce244a7ec4b4fbfd9160123ba466abdfad727b70f81` · `contract_id`
@@ -103,8 +106,24 @@ cd nenrin-independent-verifiers && ./fetch_corpus.sh
 ```
 
 The OpenTimestamps proof was made over `e.stampable` — the canonical bytes of `e.json` without `anchor` —
-so the stamp covers the record and nothing else. In this commit it is still a pending attestation;
-`ots upgrade` follows, then `anchor` and `settle`, each as its own commit.
+so the stamp covers the record and nothing else. `ots upgrade` confirmed it in Bitcoin, and `anchor` and
+`settle` followed, each as its own commit.
+
+### Settlement
+
+The proof confirmed in Bitcoin (`BitcoinBlockHeaderAttestation(970482)`, with the second calendar at
+970480). `header_view_fetch.py` built `view.json` from blockstream.info and mempool.space, which agreed,
+and `anchor` followed the proof from the stamped bytes to the header at height **970480**.
+
+```
+$ python3 settle_v1_10.py --settle c.AB.json --event e.anchored.json --view view.json --out settlement.json
+{"status": "final", "verdict": "within_grant", "deviations": [], "binding_mode": "strict"}
+```
+
+The verdict is recomputable by anyone from those three files and the block headers, without asking either
+party. One note for anyone re-running it through the wrapper: at `29a624cc`, `peer_kit.py settle` rebuilds
+`sys.argv` for `settle_v1_10.py` without passing `--out` through, so it prints the settlement and writes
+no file. Calling `settle_v1_10.py` directly, as above, writes it.
 
 ## Status
 
@@ -112,8 +131,8 @@ so the stamp covers the record and nothing else. In this commit it is still a pe
 - [x] unsigned contract drafted and published here
 - [x] signed by both parties → `c.AB.json`
 - [x] execution signed by the contractor → `e.json`, evidence `e.evidence.json`
-- [x] OpenTimestamps proof made → `e.stampable.ots` (pending; `ots upgrade` to follow)
-- [ ] anchor and settle
+- [x] OpenTimestamps proof made → `e.stampable.ots`, confirmed in Bitcoin (`BitcoinBlockHeaderAttestation(970482)`)
+- [x] anchored and settled → `e.anchored.json`, `settlement.json` (status `final`, verdict `within_grant`)
 
 Each later step is committed with its own hashes rather than overwriting anything.
 
